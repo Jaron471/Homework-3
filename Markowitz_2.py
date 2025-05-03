@@ -69,56 +69,7 @@ class MyPortfolio:
         """
         TODO: Complete Task 4 Below
         """
-        # Initialize portfolio weights with zeros to avoid NaNs
-        self.portfolio_weights = pd.DataFrame(
-            index=self.price.index, columns=self.price.columns, data=0.0
-        )
-
-        # Calculate rolling returns and volatility for momentum and risk parity
-        rolling_returns = self.returns[assets].rolling(window=self.lookback).mean()
-        rolling_volatility = self.returns[assets].rolling(window=self.lookback).std()
-
-        # Iterate over each date to compute weights
-        for date in self.price.index:
-            if date not in rolling_returns.index or rolling_returns.loc[date].isna().all() or rolling_volatility.loc[date].isna().all():
-                # For dates with insufficient lookback data or missing values, assign equal weights
-                weights = pd.Series(1.0 / len(assets), index=assets)
-            else:
-                # Get momentum (mean returns) and volatility for the date
-                momentum = rolling_returns.loc[date]
-                volatility = rolling_volatility.loc[date]
-
-                # Select top assets based on momentum
-                top_n = min(5, len(assets))  # Select top 5 assets or fewer if less available
-                top_assets = momentum.nlargest(top_n).index
-
-                # Calculate inverse volatility weights for selected assets
-                inv_vol = 1 / volatility[top_assets]
-                # Handle any potential NaN or zero volatility
-                inv_vol = inv_vol.fillna(0).replace(0, 1.0 / len(top_assets))
-                inv_vol = inv_vol / inv_vol.sum()  # Normalize to sum to 1
-
-                # Assign weights to top assets, others get 0
-                weights = pd.Series(0.0, index=assets)
-                weights[top_assets] = inv_vol
-
-            # Assign weights to portfolio_weights, including excluded asset (SPY = 0)
-            self.portfolio_weights.loc[date, assets] = weights
-            self.portfolio_weights.loc[date, self.exclude] = 0.0
-
-        # Ensure weights are non-negative
-        self.portfolio_weights = self.portfolio_weights.clip(lower=0)
-
-        # Normalize weights to sum to 1, handling zero-sum cases
-        row_sums = self.portfolio_weights.sum(axis=1)
-        # Replace zero sums with equal weights to avoid division by zero
-        for date in self.portfolio_weights.index:
-            if row_sums[date] == 0:
-                self.portfolio_weights.loc[date, assets] = 1.0 / len(assets)
-                self.portfolio_weights.loc[date, self.exclude] = 0.0
-        # Recompute row sums after fixing zero sums
-        row_sums = self.portfolio_weights.sum(axis=1)
-        self.portfolio_weights = self.portfolio_weights.div(row_sums, axis=0).fillna(0)
+        
         """
         TODO: Complete Task 4 Above
         """
